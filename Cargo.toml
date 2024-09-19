@@ -1,0 +1,9 @@
+[workspace]
+resolver = "2"
+members = ["agent", "common", "ddns"]
+
+[workspace.dependencies]
+anyhow = "1.0.88"
+pnet = "0.35.0"
+serde = {version = "1.0.210", features = ["derive"]}
+regex = "1.10.6"
