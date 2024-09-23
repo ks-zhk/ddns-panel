@@ -55,7 +55,10 @@ impl AgentClient {
             interfaces = interfaces_temp;
         }
         if let Some(regex) = &choice.regex {
-            
+            let re = regex::Regex::new(&regex)?;
+            for interface in &interfaces {
+                
+            }
         }
         // for interface in &self.interfaces {
         //     if let Some(interface_name) = &choice.interface_name {
