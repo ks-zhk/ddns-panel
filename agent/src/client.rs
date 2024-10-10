@@ -1,7 +1,7 @@
-use std::net::{IpAddr, SocketAddr};
 use anyhow::anyhow;
-use serde::{Deserialize, Serialize};
 use pnet::{datalink::NetworkInterface, packet::ipv4::Ipv4Flags};
+use serde::{Deserialize, Serialize};
+use std::net::{IpAddr, SocketAddr};
 
 use crate::ChooseConfig;
 
@@ -28,7 +28,10 @@ impl AgentClient {
         self.interfaces = interfaces;
         self
     }
-    pub fn get_interfaces_by_choice(&self, choice: &ChooseConfig) -> anyhow::Result<Vec<NetworkInterface>> {
+    pub fn get_interfaces_by_choice(
+        &self,
+        choice: &ChooseConfig,
+    ) -> anyhow::Result<Vec<NetworkInterface>> {
         choice.is_valid()?;
         let mut interfaces = Vec::new();
         let mut interfaces_temp = Vec::new();
@@ -52,14 +55,35 @@ impl AgentClient {
                     }
                 }
             }
-            interfaces = interfaces_temp;
+            interfaces = interfaces_temp.clone();
         }
+        // 进行正则匹配
+        interfaces_temp.clear();
         if let Some(regex) = &choice.regex {
             let re = regex::Regex::new(&regex)?;
             for interface in &interfaces {
-                
+                let mut interface_none_ip = interface.clone();
+                interface_none_ip.ips.clear();
+                for ip in &interface.ips {
+                    let ip_str = ip.to_string();
+                    let caps = re.captures(&ip_str);
+                    if let Some(_) = caps {
+                        interface_none_ip.ips.push(ip.clone());
+                    }
+                }
+                if interface_none_ip.ips.len() > 0 {
+                    interfaces_temp.push(interface_none_ip);
+                }
             }
         }
+        interfaces = interfaces_temp.clone();
+        interfaces_temp.clear();
+        // global_only
+        // if choice.global_only == true {
+        //     for interface in &interfaces {
+        //         let mut interface_none_ip
+        //     }
+        // }
         // for interface in &self.interfaces {
         //     if let Some(interface_name) = &choice.interface_name {
         //         if interface.name.eq(interface_name) {
@@ -91,12 +115,10 @@ impl AgentClient {
 //             match ip_type.as_str() {
 //                 "v4" | "v6" => Ok(()),
 //                 _ => Err(anyhow!("ip_type must be v4 or v6"))
-                
+
 //             }
-//         } else { 
+//         } else {
 //             Ok(())
 //         }
 //     }
 // }
-
-
